@@ -7,11 +7,14 @@ import {
   // Post,
   // Body,
   // Put,
-  // Delete,
+  Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 // import { CreateUserDTO } from './dtos/create.user.dto';
 // import { UpdateUserDTO } from './dtos/update.user.dto';
+import { AdminAuthGuard } from 'src/auth/admin-auth.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -27,6 +30,16 @@ export class UsersController {
     const user = await this.userService.getById(id);
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  @Delete('/:id')
+  @UseGuards(AdminAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async deleteById(@Param('id', new ParseUUIDPipe()) id: string) {
+    if (!(await this.userService.getById(id)))
+      throw new NotFoundException('User not found');
+    await this.userService.deleteById(id);
+    return { success: true };
   }
 
   // @Get('/mail/:email')
@@ -51,14 +64,6 @@ export class UsersController {
   //     throw new NotFoundException('User not found');
 
   //   await this.userService.updateById(id, password, userData);
-  //   return { success: true };
-  // }
-
-  // @Delete('/:id')
-  // async deleteById(@Param('id', new ParseUUIDPipe()) id: string) {
-  //   if (!(await this.userService.getById(id)))
-  //     throw new NotFoundException('User not found');
-  //   await this.userService.deleteById(id);
   //   return { success: true };
   // }
 }
